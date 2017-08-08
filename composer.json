@@ -1,0 +1,24 @@
+{
+  "name": "nzta/vote",
+  "description": "A module for voting on a Page OR a Comment",
+  "type": "silverstripe-module",
+  "homepage": "https://github.com/NZTA/vote",
+  "keywords": [
+    "silverstripe",
+    "vote",
+    "like",
+    "cms"
+  ],
+  "license": "BSD-3-Clause",
+  "support": {
+    "issues": "https://github.com/NZTA/vote/issues"
+  },
+  "require": {
+    "silverstripe/framework": "~3.4",
+    "silverstripe/cms": "~3.4",
+    "silverstripe/comments": "2.1.3@stable"
+  },
+  "require-dev": {
+    "phpunit/PHPUnit": "~3.7"
+  }
+}
