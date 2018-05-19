@@ -1,4 +1,13 @@
 <?php
+namespace NZTA\Vote\Extensions;
+
+use SilverStripe\Comments\Model\Comment;
+use SilverStripe\Core\Convert;
+use SilverStripe\ORM\DataExtension;
+use SilverStripe\Security\Member;
+use SilverStripe\Security\Security;
+use NZTA\Vote\Models\Vote;
+use SilverStripe\Control\Director;
 
 class VoteControllerExtension extends DataExtension
 {
@@ -14,6 +23,7 @@ class VoteControllerExtension extends DataExtension
      * for the specified vote object.
      *
      * @return string
+     * @throws \SilverStripe\ORM\ValidationException
      */
     public function vote()
     {
@@ -40,7 +50,7 @@ class VoteControllerExtension extends DataExtension
         }
 
         // Get all votes to count the amount of likes and dislikes for this object
-        $votes = $this->owner->Votes();
+        $votes = $this->owner->data()->Votes();
         $filter = ['CommentID' => $commentID];
 
         $numLikes = $votes->filter(array_merge(
@@ -71,10 +81,11 @@ class VoteControllerExtension extends DataExtension
      * @param integer $commentID
      *
      * @return string|null
+     * @throws \SilverStripe\ORM\ValidationException
      */
     protected function voteByCurrentUser($status, $commentID)
     {
-        return $this->voteBy(Member::currentUser(), $status, $commentID);
+        return $this->voteBy(Security::getCurrentUser(), $status, $commentID);
     }
 
     /**
@@ -85,6 +96,7 @@ class VoteControllerExtension extends DataExtension
      * @param integer $commentID
      *
      * @return string|null
+     * @throws \SilverStripe\ORM\ValidationException
      */
     private function voteBy($member = null, $status, $commentID)
     {
@@ -97,10 +109,7 @@ class VoteControllerExtension extends DataExtension
         }
 
         // validate status data
-        $availableStatuses = Injector::inst()
-            ->get('Vote')
-            ->dbObject('Status')
-            ->enumValues();
+        $availableStatuses = singleton(Vote::class)->dbObject('Status')->enumValues();
 
         if (!in_array($status, $availableStatuses)) {
             return 'Sorry, this is an invalid status.';
@@ -116,8 +125,7 @@ class VoteControllerExtension extends DataExtension
         }
 
         // check whether the member has already voted
-        $vote = $this
-            ->owner
+        $vote = $this->owner->data()
             ->Votes()
             ->filter([
                 'MemberID' => $member->ID,
@@ -133,7 +141,7 @@ class VoteControllerExtension extends DataExtension
             ]);
             $vote->write();
 
-            $this->owner->Votes()->add($vote);
+            $this->owner->data()->Votes()->add($vote);
         }
 
         $vote->Status = $status;
@@ -155,8 +163,7 @@ class VoteControllerExtension extends DataExtension
             return null;
         }
 
-        $vote = $this
-            ->owner
+        $vote = $this->owner->data()
             ->Votes()
             ->filter('MemberID', $member->ID)
             ->first();
@@ -171,6 +178,6 @@ class VoteControllerExtension extends DataExtension
      */
     public function VoteStatusByCurrentUser()
     {
-        return $this->owner->VoteStatus(Member::currentUser());
+        return $this->owner->VoteStatus(Security::getCurrentUser());
     }
 }
