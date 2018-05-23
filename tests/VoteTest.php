@@ -1,4 +1,9 @@
 <?php
+namespace NZTA\Vote\Tests;
+
+use SilverStripe\Dev\FunctionalTest;
+use PageController;
+use SilverStripe\Control\HTTPRequest;
 
 class VoteTest extends FunctionalTest
 {
@@ -28,8 +33,9 @@ class VoteTest extends FunctionalTest
             'vote'       => 'Like',
         ];
 
-        $controller = new Page_Controller();
-        $request = new SS_HTTPRequest('POST', 'vote', '', $postData);
+        $controller = new PageController();
+
+        $request = new HTTPRequest('POST', 'vote', '', $postData);
         $response = $controller->vote();
 
         // Ensure accept only ajax requests
