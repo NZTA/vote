@@ -17,7 +17,7 @@
     "silverstripe/cms": "^4.0",
     "silverstripe/framework": "^4.0",
     "colymba/gridfield-bulk-editing-tools": "^3.0",
-    "silverstripe/comments": "3.1.0@stable"
+    "silverstripe/comments": "^3.1.0@stable"
   },
   "require-dev": {
     "phpunit/PHPUnit": "^5.7"
