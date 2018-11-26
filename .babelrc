@@ -1,0 +1,10 @@
+{
+    "comments": false,
+    "presets": [
+        "minify"
+    ],
+    "plugins": [
+        "transform-es2015-arrow-functions",
+        "transform-es2015-template-literals"
+    ]
+}
