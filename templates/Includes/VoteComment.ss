@@ -1,15 +1,15 @@
 <% with $Comment %>
     <div class="vote<% if $VoteStatusByCurrentUser %> vote--casted<% end_if %>">
-        <a data-vote="like" data-comment-id="$ID" href="{$Parent.Link}vote" class="vote__link vote__link--like<% if $VoteStatusByCurrentUser == 'Like' %> vote__link--selected<% end_if %>">
+        <a data-vote="Like" data-comment-id="$ID" href="{$Parent.Link}vote" class="vote__link vote__link--like<% if $VoteStatusByCurrentUser == 'Like' %> vote__link--selected<% end_if %>">
             <i class="i i-thumb-up i--unselected"></i>
             <i class="i i-thumb-up-blue i--selected"></i>
-            <span class="vote__num vote__num--like">$LikeCount</span>
+            <span class="vote__num vote__num--like">$commentLikeCount</span>
         </a>
 
-        <a data-vote="dislike" data-comment-id="$ID" href="{$Parent.Link}vote" class="vote__link vote__link--dislike<% if $VoteStatusByCurrentUser == 'Dislike' %> vote__link--selected<% end_if %>">
+        <a data-vote="Dislike" data-comment-id="$ID" href="{$Parent.Link}vote" class="vote__link vote__link--dislike<% if $VoteStatusByCurrentUser == 'Dislike' %> vote__link--selected<% end_if %>">
             <i class="i i-thumb-down i--unselected"></i>
             <i class="i i-thumb-down-blue i--selected"></i>
-            <span class="vote__num vote__num--dislike">$LikeCount</span>
+            <span class="vote__num vote__num--dislike">$commentLikeCount</span>
         </a>
 
         <p class="vote__message theme--error hide">
