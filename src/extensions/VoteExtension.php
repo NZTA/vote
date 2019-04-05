@@ -35,4 +35,20 @@ class VoteExtension extends DataExtension
         return null;
     }
 
+    public function commentLikeCount($commentID)
+    {
+        $votes = $this->owner->Votes();
+
+        if ($votes->count()) {
+            return $votes
+                ->filter([
+                    'Status'    => 'Like',
+                    'CommentID' => $commentID,
+                ])
+                ->count();
+        }
+
+        return null;
+    }
+
 }
