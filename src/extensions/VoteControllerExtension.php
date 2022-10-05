@@ -91,14 +91,14 @@ class VoteControllerExtension extends DataExtension
     /**
      * Creates a Vote object for the currently logged in member, and sets the status to the provided value
      *
-     * @param Member $member
+     * @param Member|null $member
      * @param string $status
      * @param integer $commentID
      *
      * @return string|null
      * @throws \SilverStripe\ORM\ValidationException
      */
-    private function voteBy($member = null, $status, $commentID)
+    private function voteBy($member, $status, $commentID)
     {
         $status = Convert::raw2sql($status);
         $commentID = (int)$commentID;
@@ -153,11 +153,11 @@ class VoteControllerExtension extends DataExtension
     /**
      * Gets the status of the vote - like|dislike
      *
-     * @param Member $member
+     * @param Member|null $member
      *
      * @return string|null
      */
-    public function VoteStatus($member = null)
+    public function VoteStatus($member)
     {
         if (!$member) {
             return null;
