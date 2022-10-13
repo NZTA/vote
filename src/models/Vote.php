@@ -3,7 +3,6 @@
 namespace NZTA\Vote\Models;
 
 use Page;
-use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Comments\Model\Comment;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Member;
@@ -36,7 +35,7 @@ class Vote extends DataObject
      * @var array
      */
     private static $has_one = [
-        'Page'    => SiteTree::class,
+        'Page'    => Page::class,
         'Comment' => Comment::class, // can vote on a Page OR a Comment
         'Member'  => Member::class,
     ];

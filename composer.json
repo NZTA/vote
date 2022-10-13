@@ -38,7 +38,7 @@
   "scripts": {
     "lint": "phpcs -s src/ tests/",
     "lint-fix": "phpcbf -s src/ tests/",
-    "test": "phpunit -d memory_limit=512M -d flush=1"
+    "test": "phpunit '' -d memory_limit=512M -d flush=1"
   },
   "minimum-stability": "dev",
   "prefer-stable": true

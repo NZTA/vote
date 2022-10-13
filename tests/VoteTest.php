@@ -4,9 +4,9 @@ namespace NZTA\Vote\Tests;
 use NZTA\Vote\Extensions\VoteControllerExtension;
 use NZTA\Vote\Extensions\VoteExtension;
 use NZTA\Vote\Models\Vote;
+use Page;
+use PageController;
 use SilverStripe\Control\HTTPRequest;
-use SilverStripe\CMS\Controllers\ContentController;
-use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Dev\FunctionalTest;
 
 class VoteTest extends FunctionalTest
@@ -21,20 +21,17 @@ class VoteTest extends FunctionalTest
      * @var array
      */
     protected static $required_extensions = [
-        ContentController::class => [VoteControllerExtension::class],
-        SiteTree::class => [VoteExtension::class],
+        PageController::class => [VoteControllerExtension::class],
+        Page::class => [VoteExtension::class],
     ];
 
-    /**
-     * @var ContentController
-     */
-    protected $controller;
+    protected ?PageController $controller;
 
     public function setUp(): void
     {
         parent::setUp();
 
-        $this->controller = new ContentController();
+        $this->controller = PageController::create(Page::create());
     }
 
     public function testVote()
