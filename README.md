@@ -13,11 +13,11 @@ Provides the ability to vote on a Page OR a Comment.
 To get work vote module in all the pages, You need to add this to your config.yml file.
 
 ```
-\Page:
+Page:
   extensions:
     - NZTA\Vote\Extensions\VoteExtension
 
-\Page_Controller:
+PageController:
   extensions:
     - NZTA\Vote\Extensions\VoteControllerExtension
 ```

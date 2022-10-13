@@ -1,13 +1,13 @@
 <?php
 namespace NZTA\Vote\Extensions;
 
+use NZTA\Vote\Models\Vote;
 use SilverStripe\Comments\Model\Comment;
+use SilverStripe\Control\Director;
 use SilverStripe\Core\Convert;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
-use NZTA\Vote\Models\Vote;
-use SilverStripe\Control\Director;
 
 class VoteControllerExtension extends DataExtension
 {

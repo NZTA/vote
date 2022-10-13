@@ -2,8 +2,8 @@
 
 namespace NZTA\Vote\Extensions;
 
-use SilverStripe\ORM\DataExtension;
 use NZTA\Vote\Models\Vote;
+use SilverStripe\ORM\DataExtension;
 
 class VoteExtension extends DataExtension
 {
@@ -50,5 +50,4 @@ class VoteExtension extends DataExtension
 
         return null;
     }
-
 }

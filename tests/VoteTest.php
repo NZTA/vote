@@ -1,9 +1,13 @@
 <?php
 namespace NZTA\Vote\Tests;
 
-use SilverStripe\Dev\FunctionalTest;
-use PageController;
+use NZTA\Vote\Extensions\VoteControllerExtension;
+use NZTA\Vote\Extensions\VoteExtension;
+use NZTA\Vote\Models\Vote;
 use SilverStripe\Control\HTTPRequest;
+use SilverStripe\CMS\Controllers\ContentController;
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Dev\FunctionalTest;
 
 class VoteTest extends FunctionalTest
 {
@@ -16,11 +20,22 @@ class VoteTest extends FunctionalTest
     /**
      * @var array
      */
-    protected $requiredExtensions = [
-        'Page_Controller' => [
-            'VoteControllerExtension'
-        ]
+    protected static $required_extensions = [
+        ContentController::class => [VoteControllerExtension::class],
+        SiteTree::class => [VoteExtension::class],
     ];
+
+    /**
+     * @var ContentController
+     */
+    protected $controller;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+
+        $this->controller = new ContentController();
+    }
 
     public function testVote()
     {
@@ -33,10 +48,8 @@ class VoteTest extends FunctionalTest
             'vote'       => 'Like',
         ];
 
-        $controller = new PageController();
-
         $request = new HTTPRequest('POST', 'vote', '', $postData);
-        $response = $controller->vote();
+        $response = $this->controller->vote();
 
         // Ensure accept only ajax requests
         $this->assertEquals(400, $response->getstatusCode());
@@ -44,8 +57,8 @@ class VoteTest extends FunctionalTest
 
         // Adding ajax headers
         $request->addHeader('X-Requested-With', 'XMLHttpRequest');
-        $controller->setRequest($request);
-        $response = $controller->vote();
+        $this->controller->setRequest($request);
+        $response = $this->controller->vote();
 
         // Ensure logged users can only vote and accept the ajax request
         $this->assertEquals(400, $response->getstatusCode());
@@ -55,7 +68,7 @@ class VoteTest extends FunctionalTest
         $member = $this->objFromFixture('Member', 'Member1');
         $this->logInAs($member);
 
-        $response = $controller->vote();
+        $response = $this->controller->vote();
         $responseBody = json_decode($response->getBody());
 
         // Ensure getting success response
