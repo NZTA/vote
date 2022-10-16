@@ -49,38 +49,41 @@
     let url = link.getAttribute('href');
     let dataVote = link.getAttribute('data-vote');
     let dataCommentID = link.getAttribute('data-comment-id');
+    let form = document.getElementById('VoteForm');
+    let tokenElement = form.querySelector('input[name="SecurityID"]');
+    let token = tokenElement.value;
 
     fetch(url, {
-        method: 'post',
-        credentials: 'same-origin',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: encodeURI(`vote=${dataVote}&comment_id=${dataCommentID}`)
-      })
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        }
-      })
-      .then((data) => {
-        // updates the selected icon and count of likes and dislikes
-        updateVote(parent, data.status, data.numLikes, data.numDislikes);
-      })
-      .then((data) => {
-          parent.classList.remove('vote--processing');
-      })
-      .catch((err) => {
-        let errMessage = parent.querySelector('.vote__message');
+      method: 'post',
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: encodeURI(`vote=${dataVote}&comment_id=${dataCommentID}&SecurityID=${token}`)
+    })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+    })
+    .then((data) => {
+      // updates the selected icon and count of likes and dislikes
+      updateVote(parent, data.status, data.numLikes, data.numDislikes);
+    })
+    .then((data) => {
+      parent.classList.remove('vote--processing');
+    })
+    .catch((err) => {
+      let errMessage = parent.querySelector('.vote__message');
 
-        if (errMessage) {
-          errMessage.style.display = '';
-        }
+      if (errMessage) {
+        errMessage.style.display = '';
+      }
 
-        parent.classList.remove('vote--processing');
-      });
+      parent.classList.remove('vote--processing');
+    });
   };
 
   document.addEventListener('DOMContentLoaded', () => {

@@ -1,7 +1,7 @@
 {
   "name": "nzta/vote",
   "description": "A module for voting on a Page OR a Comment",
-  "type": "silverstripe-module",
+  "type": "silverstripe-vendormodule",
   "homepage": "https://github.com/NZTA/vote",
   "keywords": [
     "silverstripe",
@@ -14,11 +14,32 @@
     "issues": "https://github.com/NZTA/vote/issues"
   },
   "require": {
-    "silverstripe/framework": "~3.4",
-    "silverstripe/cms": "~3.4",
-    "silverstripe/comments": "2.1.3@stable"
+    "colymba/gridfield-bulk-editing-tools": "^3.0",
+    "silverstripe/cms": "^4.0",
+    "silverstripe/comments": "^3.0",
+    "silverstripe/framework": "^4.0"
   },
   "require-dev": {
-    "phpunit/PHPUnit": "~3.7"
-  }
+    "phpunit/phpunit": "^9.5",
+    "squizlabs/php_codesniffer": "^3.0"
+  },
+  "extra": {
+    "installer-name": "vote",
+    "expose": [
+      "js"
+    ]
+  },
+  "autoload": {
+    "psr-4": {
+      "NZTA\\Vote\\": "src/",
+      "NZTA\\Vote\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "lint": "phpcs -s src/ tests/",
+    "lint-fix": "phpcbf -s src/ tests/",
+    "test": "phpunit '' -d memory_limit=512M -d flush=1"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
