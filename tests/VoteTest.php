@@ -1,4 +1,5 @@
 <?php
+
 namespace NZTA\Vote\Tests;
 
 use NZTA\Vote\Extensions\VoteControllerExtension;
@@ -11,15 +12,8 @@ use SilverStripe\Dev\FunctionalTest;
 
 class VoteTest extends FunctionalTest
 {
-
-    /**
-     * @var string
-     */
     protected static $fixture_file = './VoteTest.yml';
 
-    /**
-     * @var array
-     */
     protected static $required_extensions = [
         PageController::class => [VoteControllerExtension::class],
         Page::class => [VoteExtension::class],
@@ -78,7 +72,7 @@ class VoteTest extends FunctionalTest
         $vote = Vote::get()->filter(
             [
                 'MemberID'  => $member->ID,
-                'CommentID' => $commentID
+                'CommentID' => $commentID,
             ]
         )->first();
 

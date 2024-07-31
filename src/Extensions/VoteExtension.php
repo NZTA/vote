@@ -7,9 +7,6 @@ use SilverStripe\ORM\DataExtension;
 
 class VoteExtension extends DataExtension
 {
-    /**
-     * @var array
-     */
     private static $has_many = [
         'Votes' => Vote::class,
     ];

@@ -1,9 +1,9 @@
 <?php
+
 namespace NZTA\Vote\Extensions;
 
 use NZTA\Vote\Models\Vote;
 use SilverStripe\Comments\Model\Comment;
-use SilverStripe\Control\Director;
 use SilverStripe\Core\Convert;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\Security\Member;
@@ -68,7 +68,7 @@ class VoteControllerExtension extends DataExtension
         $response->setBody(json_encode([
             'status' => $status,
             'numLikes' => $numLikes,
-            'numDislikes' => $numDislikes
+            'numDislikes' => $numDislikes,
         ]));
 
         return $response;
@@ -129,7 +129,7 @@ class VoteControllerExtension extends DataExtension
             ->Votes()
             ->filter([
                 'MemberID' => $member->ID,
-                'CommentID' => $commentID
+                'CommentID' => $commentID,
             ])
             ->first();
 
@@ -137,7 +137,7 @@ class VoteControllerExtension extends DataExtension
         if (!$vote) {
             $vote = new Vote([
                 'MemberID' => $member->ID,
-                'CommentID' => $commentID
+                'CommentID' => $commentID,
             ]);
             $vote->write();
 

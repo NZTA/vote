@@ -4,12 +4,13 @@
 .phpunit.result.cache
 
 composer.lock
+package-lock.json
+yarn.lock
 
 _graphql
 app
-assets
-certs
 docker*
-resources
+node_modules
+public
 silverstripe-cache
 vendor
