@@ -31,7 +31,11 @@
   },
   "autoload": {
     "psr-4": {
-      "NZTA\\Vote\\": "src/",
+      "NZTA\\Vote\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
       "NZTA\\Vote\\Tests\\": "tests/"
     }
   },
