@@ -11,9 +11,6 @@ use SilverStripe\Security\Security;
 
 class VoteControllerExtension extends DataExtension
 {
-    /**
-     * @var array
-     */
     private static $allowed_actions = [
         'vote',
     ];
