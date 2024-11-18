@@ -2,6 +2,7 @@
 .DS_Store
 .graphql-generated
 .phpunit.result.cache
+.vscode
 
 composer.lock
 package-lock.json

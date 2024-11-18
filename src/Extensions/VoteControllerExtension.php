@@ -4,12 +4,12 @@ namespace NZTA\Vote\Extensions;
 
 use NZTA\Vote\Models\Vote;
 use SilverStripe\Comments\Model\Comment;
-use SilverStripe\Core\Convert;
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Control\HTTPResponse_Exception;
+use SilverStripe\Core\Extension;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
 
-class VoteControllerExtension extends DataExtension
+class VoteControllerExtension extends Extension
 {
     private static $allowed_actions = [
         'vote',
@@ -20,52 +20,39 @@ class VoteControllerExtension extends DataExtension
      * for the specified vote object.
      *
      * @return string
-     * @throws \SilverStripe\ORM\ValidationException
+     * @throws HTTPResponse_Exception
      */
     public function vote()
     {
         $request = $this->owner->getRequest();
-        $response = $this->owner->getResponse();
 
-        if (!$request->isAjax() || !$request->isPOST()) {
-            return $response->setStatusCode(400, 'The request needs to be post AJAX.');
+        if (!$request->isPOST()) {
+            try {
+                // allow hooks to run
+                $this->owner->httpError(405, 'Only HTTP POST requests are accepted');
+            } catch (HTTPResponse_Exception $e) {
+                // set required header
+                $e->getResponse()->addHeader('Allow', 'POST');
+                throw $e;
+            }
         }
 
         // a commentID of 0 means the vote is not for a comment
         $commentID = $request->postVar('comment_id');
         $status = $request->postVar('vote');
 
-        // sanitize data
-        $commentID = Convert::raw2sql($commentID);
-        $status = Convert::raw2sql($status);
-
         // checks if user has already voted and returns error message if so
-        $errMsg = $this->voteByCurrentUser($status, $commentID);
-
-        if ($errMsg) {
-            return $response->setStatusCode(400, $errMsg);
-        }
+        $this->voteByCurrentUser($status, $commentID);
 
         // Get all votes to count the amount of likes and dislikes for this object
-        $votes = $this->owner->data()->Votes();
-        $filter = ['CommentID' => $commentID];
+        $votes = $this->owner->data()->Votes()->filter('CommentID', $commentID);
 
-        $numLikes = $votes->filter(array_merge(
-            $filter,
-            ['Status' => 'Like']
-        ))->count();
-
-        $numDislikes = $votes->filter(array_merge(
-            $filter,
-            ['Status' => 'Dislike']
-        ))->count();
-
-        $response->setStatusCode(200);
+        $response = $this->owner->getResponse();
         $response->addHeader('Content-Type', 'application/json');
         $response->setBody(json_encode([
             'status' => $status,
-            'numLikes' => $numLikes,
-            'numDislikes' => $numDislikes,
+            'numLikes' => $votes->filter('Status', 'Like')->count(),
+            'numDislikes' => $votes->filter('Status', 'Dislike')->count(),
         ]));
 
         return $response;
@@ -77,12 +64,11 @@ class VoteControllerExtension extends DataExtension
      * @param string $status
      * @param integer $commentID
      *
-     * @return string|null
-     * @throws \SilverStripe\ORM\ValidationException
+     * @return null
      */
     protected function voteByCurrentUser($status, $commentID)
     {
-        return $this->voteBy(Security::getCurrentUser(), $status, $commentID);
+        return $this->castVote(Security::getCurrentUser(), $status, (int)$commentID);
     }
 
     /**
@@ -93,56 +79,50 @@ class VoteControllerExtension extends DataExtension
      * @param integer $commentID
      *
      * @return string|null
-     * @throws \SilverStripe\ORM\ValidationException
+     * @throws HTTPResponse_Exception
      */
-    private function voteBy($member, $status, $commentID)
+    private function castVote(?Member $member, string $status, int $commentID)
     {
-        $status = Convert::raw2sql($status);
-        $commentID = (int)$commentID;
-
         // check if there is a logged in member
         if (!$member) {
-            return 'Sorry, you need to login to vote.';
+            return $this->owner->httpError(403, _t(self::class . '.ERROR_BAD_USER', 'Log in to vote'));
         }
 
+        $voteDetails = [
+            'MemberID' => $member->ID,
+            'CommentID' => $commentID,
+        ];
+
+        $vote = Vote::create($voteDetails);
+
         // validate status data
-        $availableStatuses = singleton(Vote::class)->dbObject('Status')->enumValues();
+        $availableStatuses = $vote->dbObject('Status')->enumValues();
 
         if (!in_array($status, $availableStatuses)) {
-            return 'Sorry, this is an invalid status.';
+            return $this->owner->httpError(400, _t(self::class . '.ERROR_BAD_STATUS', 'Invalid vote'));
         }
 
         // validate comment data
-        if ($commentID !== 0) {
-            $comment = Comment::get()->byID((int)$commentID);
-
-            if (!$comment) {
-                return 'Sorry, this is not a valid comment ID.';
-            }
+        if ($commentID !== 0 && !Comment::get()->byID($commentID)) {
+            return $this->owner->httpError(400, _t(self::class . '.ERROR_BAD_COMMENT', 'Invalid comment'));
         }
+
+
+
+        $votesForPage = $this->owner->data();
 
         // check whether the member has already voted
-        $vote = $this->owner->data()
-            ->Votes()
-            ->filter([
-                'MemberID' => $member->ID,
-                'CommentID' => $commentID,
-            ])
-            ->first();
+        $hasVoted = $votesForPage->Votes()->filter($voteDetails)->first();
 
-        // if they haven't create a new vote for this member
-        if (!$vote) {
-            $vote = new Vote([
-                'MemberID' => $member->ID,
-                'CommentID' => $commentID,
-            ]);
-            $vote->write();
-
-            $this->owner->data()->Votes()->add($vote);
-        }
-
+        // set or update status
+        $vote = $hasVoted ?? $vote;
         $vote->Status = $status;
-        $vote->write();
+
+        if ($hasVoted) {
+            $vote->write();
+        } else {
+            $votesForPage->Votes()->add($vote); // performs a write
+        }
 
         return null;
     }
@@ -156,16 +136,11 @@ class VoteControllerExtension extends DataExtension
      */
     public function VoteStatus($member)
     {
-        if (!$member) {
-            return null;
-        }
-
-        $vote = $this->owner->data()
+        return !$member ? null : $this->owner->data()
             ->Votes()
             ->filter('MemberID', $member->ID)
-            ->first();
-
-        return ($vote) ? $vote->Status : null;
+            ->first()
+            ?->Status;
     }
 
     /**

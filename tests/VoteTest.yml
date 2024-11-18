@@ -1,10 +1,14 @@
-Comment:
+Page:
+  Page1:
+    Title: Test page
+
+SilverStripe\Comments\Model\Comment:
   Comment1:
     Name: Comment one
     Comment: Test Comment
     Email: testmail@example.org
 
-Member:
+SilverStripe\Security\Member:
   Member1:
-    FirstName: Bookmark member
+    FirstName: Voter
     Surname: One

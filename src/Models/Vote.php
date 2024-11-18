@@ -16,7 +16,7 @@ class Vote extends DataObject
     private static $plural_name = 'Votes';
 
     private static $db = [
-        'Status' => 'Enum("Like, Dislike")',
+        'Status' => 'Enum("Like, Dislike", "Like")',
     ];
 
     private static $has_one = [

@@ -7,10 +7,13 @@ use NZTA\Vote\Extensions\VoteExtension;
 use NZTA\Vote\Models\Vote;
 use Page;
 use PageController;
+use SilverStripe\Comments\Model\Comment;
 use SilverStripe\Control\HTTPRequest;
-use SilverStripe\Dev\FunctionalTest;
+use SilverStripe\Control\HTTPResponse_Exception;
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Security\Member;
 
-class VoteTest extends FunctionalTest
+class VoteTest extends SapphireTest
 {
     protected static $fixture_file = './VoteTest.yml';
 
@@ -24,60 +27,110 @@ class VoteTest extends FunctionalTest
     public function setUp(): void
     {
         parent::setUp();
-
-        $this->controller = PageController::create(Page::create());
+        $this->logOut();
+        $page = $this->objFromFixture(Page::class, 'Page1');
+        $this->controller = PageController::create($page);
     }
 
-    public function testVote()
+    public function testVoteErrorsOnBadHttpMethod()
     {
-        // Ensure vote has been added to the comment
-        $comment = $this->objFromFixture('Comment', 'Comment1');
-        $commentID = $comment->ID;
+        try {
+            $response = $this->controller->vote(); // null request
+        } catch (HTTPResponse_Exception $e) {
+            $response = $e->getResponse();
+        }
 
-        $postData = [
-            'comment_id' => $commentID,
-            'vote'       => 'Like',
-        ];
+        // Ensure accept only POST requests
+        $this->assertSame(405, $response->getstatusCode());
+        $this->assertSame('Method Not Allowed', $response->getStatusDescription());
+        $this->assertSame('POST', $response->getHeader('Allow'));
+        $this->assertSame('Only HTTP POST requests are accepted', $response->getBody());
+    }
 
-        $request = new HTTPRequest('POST', 'vote', '', $postData);
-        $response = $this->controller->vote();
-
-        // Ensure accept only ajax requests
-        $this->assertEquals(400, $response->getstatusCode());
-        $this->assertEquals('The request needs to be post AJAX.', $response->getStatusDescription());
-
-        // Adding ajax headers
-        $request->addHeader('X-Requested-With', 'XMLHttpRequest');
+    public function testOnlyAuthenticatedMembersCanVote()
+    {
+        $request = new HTTPRequest('POST', 'vote', '', ['vote' => 'Like', 'comment_id' => 0]);
         $this->controller->setRequest($request);
-        $response = $this->controller->vote();
+        try {
+            $response = $this->controller->vote();
+        } catch (HTTPResponse_Exception $e) {
+            $response = $e->getResponse();
+        }
 
-        // Ensure logged users can only vote and accept the ajax request
-        $this->assertEquals(400, $response->getstatusCode());
-        $this->assertEquals('Sorry, you need to login to vote.', $response->getStatusDescription());
+        // Ensure logged users can only vote
+        $this->assertEquals(403, $response->getstatusCode());
+        $this->assertEquals('Forbidden', $response->getStatusDescription());
+        $this->assertSame('Log in to vote', $response->getBody());
+    }
 
-        // Login as Member1
-        $member = $this->objFromFixture('Member', 'Member1');
+    public function testBadVotesAreRejected()
+    {
+        $member = $this->objFromFixture(Member::class, 'Member1');
         $this->logInAs($member);
+        $request = new HTTPRequest('POST', 'vote', '', ['vote' => 'Upvote', 'comment_id' => 0]);
+        $this->controller->setRequest($request);
+        try {
+            $response = $this->controller->vote();
+        } catch (HTTPResponse_Exception $e) {
+            $response = $e->getResponse();
+        }
+
+        // Ensure logged users can only vote
+        $this->assertEquals(400, $response->getstatusCode());
+        $this->assertEquals('Bad Request', $response->getStatusDescription());
+        $this->assertSame('Invalid vote', $response->getBody());
+    }
+
+    public function testVotesOnBadCommentsAreRejected()
+    {
+        $member = $this->objFromFixture(Member::class, 'Member1');
+        $this->logInAs($member);
+        $request = new HTTPRequest('POST', 'vote', '', ['vote' => 'Like', 'comment_id' => 9001]);
+        $this->controller->setRequest($request);
+        try {
+            $response = $this->controller->vote();
+        } catch (HTTPResponse_Exception $e) {
+            $response = $e->getResponse();
+        }
+
+        // Ensure logged users can only vote
+        $this->assertEquals(400, $response->getstatusCode());
+        $this->assertEquals('Bad Request', $response->getStatusDescription());
+        $this->assertSame('Invalid comment', $response->getBody());
+    }
+
+    public function testVoteOnComment()
+    {
+        $member = $this->objFromFixture(Member::class, 'Member1');
+        $this->logInAs($member);
+        $comment = $this->objFromFixture(Comment::class, 'Comment1');
+        $request = new HTTPRequest('POST', 'vote', '', ['vote' => 'Like', 'comment_id' => $comment->ID]);
+        $this->controller->setRequest($request);
 
         $response = $this->controller->vote();
-        $responseBody = json_decode($response->getBody());
 
-        // Ensure getting success response
         $this->assertEquals(200, $response->getstatusCode());
-
-        // Ensure getting the correct response body
+        $responseBody = json_decode($response->getBody());
         $this->assertEquals(1, $responseBody->numLikes);
+        $vote = Vote::get()->filter(['MemberID'  => $member->ID, 'CommentID' => $comment->ID])->first();
+        $this->assertInstanceOf(Vote::class, $vote, 'Vote should have been saved');
+        $this->assertEquals('Like', $vote->Status);
+    }
 
-        // Ensure vote saved to database with under this $member
-        $vote = Vote::get()->filter(
-            [
-                'MemberID'  => $member->ID,
-                'CommentID' => $commentID,
-            ]
-        )->first();
+    public function testVoteOnPage()
+    {
+        $member = $this->objFromFixture(Member::class, 'Member1');
+        $this->logInAs($member);
+        $request = new HTTPRequest('POST', 'vote', '', ['vote' => 'Like', 'comment_id' => 0]);
+        $this->controller->setRequest($request);
 
-        // Asserts vote and data
-        $this->assertTrue($vote instanceof Vote);
+        $response = $this->controller->vote();
+
+        $this->assertEquals(200, $response->getstatusCode());
+        $responseBody = json_decode($response->getBody());
+        $this->assertEquals(1, $responseBody->numLikes);
+        $vote = Vote::get()->filter(['MemberID'  => $member->ID, 'CommentID' => 0])->first();
+        $this->assertInstanceOf(Vote::class, $vote, 'Vote should have been saved');
         $this->assertEquals('Like', $vote->Status);
     }
 }
