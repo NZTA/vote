@@ -1,0 +1,9 @@
+---
+Name: vote-comment-support
+Only:
+  moduleexists:
+    - 'silverstripe/comments'
+---
+NZTA\Vote\Models\Vote:
+  has_one:
+    Comment: 'SilverStripe\Comments\Model\Comment'

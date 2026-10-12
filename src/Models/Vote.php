@@ -3,7 +3,6 @@
 namespace NZTA\Vote\Models;
 
 use Page;
-use SilverStripe\Comments\Model\Comment;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Member;
 
@@ -19,9 +18,14 @@ class Vote extends DataObject
         'Status' => 'Enum("Like, Dislike", "Like")',
     ];
 
+    /**
+     * @inheritDoc
+     *
+     * IF the comment module exists, then via configuration (yml)
+     * Comment support is added as 'Comment' => Comment::class
+     */
     private static $has_one = [
         'Page'    => Page::class,
-        'Comment' => Comment::class, // can vote on a Page OR a Comment
         'Member'  => Member::class,
     ];
 }

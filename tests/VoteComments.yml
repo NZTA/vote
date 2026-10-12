@@ -1,0 +1,5 @@
+SilverStripe\Comments\Model\Comment:
+  Comment1:
+    Name: Comment one
+    Comment: Test Comment
+    Email: testmail@example.org

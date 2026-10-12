@@ -2,11 +2,8 @@
 
 ## Introduction
 
-Provides the ability to vote on a Page OR a Comment.
-
-## Features
-
-- Able to like or unlike a page, member or comment.
+Provides the ability to vote on a Page.
+If the comments module is present, then votes can also be added to comments.
 
 ## Installation
 
@@ -14,7 +11,8 @@ Provides the ability to vote on a Page OR a Comment.
 composer require nzta/vote
 ```
 
-To get work vote module in all the pages, You need to add this to your config.yml file:
+Add the vote extensions to pages where desired.
+E.g. to enable globally (on all pages), configure such as below:
 
 ```yml
 Page:
@@ -25,3 +23,7 @@ PageController:
   extensions:
     - NZTA\Vote\Extensions\VoteControllerExtension
 ```
+
+### Comment support
+If the comments module is present (`silverstripe/comments`) then comment support is automatic for comments that exist
+on a configured page (per the controller extension as above). See _config/comment_support.yml for detail.

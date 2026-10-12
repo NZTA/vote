@@ -1,6 +1,5 @@
 .idea
 .DS_Store
-.graphql-generated
 .phpunit.result.cache
 .vscode
 
@@ -8,7 +7,6 @@ composer.lock
 package-lock.json
 yarn.lock
 
-_graphql
 app
 docker*
 node_modules
